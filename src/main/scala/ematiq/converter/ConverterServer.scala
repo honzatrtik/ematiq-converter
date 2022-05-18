@@ -27,7 +27,7 @@ object ConverterServer extends IOApp {
   // Belongs to ENV
   val fixerConfig: FixerProvider.Config =
     FixerProvider.Config("D82PLsB19yvDAVSCN29KqW2znZ2oqD5h")
-  val cachingProviderConfig: CachingProvider.Config = CachingProvider.Config(1.hour, 500)
+  val cachingProviderConfig: CachingProvider.Config = CachingProvider.Config(2.hours, 500)
 
   override def run(args: List[String]): IO[ExitCode] = {
 
