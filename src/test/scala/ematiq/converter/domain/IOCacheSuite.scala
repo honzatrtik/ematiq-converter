@@ -11,7 +11,7 @@ import java.time.LocalDate
 import scala.concurrent.duration.*
 
 class IOCacheSuite extends CatsEffectSuite {
-  
+
   test("Cache should compute key for the first time and return cached value on consequent calls") {
 
     val query = ExchangeRateQuery(CurrencyUnit.EUR, CurrencyUnit.EUR, LocalDate.now)
@@ -37,14 +37,19 @@ class IOCacheSuite extends CatsEffectSuite {
     for {
       counter <- Ref.of[IO, Int](0)
       cache <- IOCache(10.hours)
-      fiber1 <- cache.get(query, _ => IO.sleep(5.seconds) *> rate.pure[IO]).start // This will calculate value after 5 seconds
+      // This will calculate value after 5 seconds
+      fiber1 <- cache.get(query, _ => IO.sleep(5.seconds) *> rate.pure[IO]).start
+      _ <- IO.sleep(10.millis)
       fiber2 <- cache.get(query, _ => counter.update(_ + 1) *> rate.pure[IO]).start
       rate1 <- fiber1.join
       rate2 <- fiber2.join
       count <- counter.get
     } yield {
       assertEquals(rate1, rate2)
-      assertEquals(count, 0) // Second cache call did not run the computation thus counter was not incremented
+      assertEquals(
+        count,
+        0
+      ) // Second cache call did not run the computation thus counter was not incremented
     }
 
   }
