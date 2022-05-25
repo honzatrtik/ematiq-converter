@@ -9,6 +9,7 @@ import org.joda.money.{BigMoney, CurrencyUnit}
 import org.typelevel.log4cats.{Logger, SelfAwareStructuredLogger}
 
 import java.time.LocalDate
+import ematiq.converter.infrastructure.NoOpCache
 
 class ConverterSuite extends munit.FunSuite {
 
@@ -23,7 +24,7 @@ class ConverterSuite extends munit.FunSuite {
   val logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   test("Converter should return converted amount if provided with exchange rate") {
-    val converter = new Converter(logger, constExchangeRateProvider(0.04))
+    val converter = new Converter(logger, constExchangeRateProvider(0.04), NoOpCache())
     val result = converter
       .convert(
         CurrencyToConvert(
@@ -44,7 +45,7 @@ class ConverterSuite extends munit.FunSuite {
 
   test("Converter should return converted amount for rate with 5 decimal places precision") {
     val converter =
-      new Converter(logger, constExchangeRateProvider(0.33333333333333))
+      new Converter(logger, constExchangeRateProvider(0.33333333333333), NoOpCache())
     val result = converter
       .convert(
         CurrencyToConvert(
@@ -67,7 +68,7 @@ class ConverterSuite extends munit.FunSuite {
     "Converter should fail with `FailedToGetExchangeRate` if exchange rate provider fail to provide rate"
   ) {
     val error = Throwable("Bad stuff happened")
-    val converter = new Converter(logger, failingExchangeRateProvider(error))
+    val converter = new Converter(logger, failingExchangeRateProvider(error), NoOpCache())
     val result = converter.convert(
       CurrencyToConvert(
         BigMoney.of(CurrencyUnit.of("CZK"), 100),
