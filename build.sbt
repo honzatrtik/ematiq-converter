@@ -32,11 +32,6 @@ val circeDependencies = Seq(
   "io.circe" %% "circe-parser"
 ).map(_ % circeVersion)
 
-val scaffeineVersion = "5.1.2"
-val scaffeineDependencies = Seq(
-  "com.github.blemale" %% "scaffeine"
-).map(_ % scaffeineVersion)
-
 val munitDependencies = Seq(
   "org.scalameta" %% "munit" % "0.7.29" % Test
 )
@@ -53,7 +48,6 @@ lazy val root = project
         catsDependencies ++
         http4sDependencies ++
         circeDependencies ++
-        scaffeineDependencies ++
         munitDependencies,
     testFrameworks += new TestFramework("munit.Framework"),
     logBuffered := false,

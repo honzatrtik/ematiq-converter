@@ -27,7 +27,7 @@ object ConverterServer extends IOApp {
   // Belongs to ENV
   val fixerConfig: FixerProvider.Config =
     FixerProvider.Config("D82PLsB19yvDAVSCN29KqW2znZ2oqD5h")
-  val cachingProviderConfig: CachingProvider.Config = CachingProvider.Config(2.hours, 500)
+  val ttl: FiniteDuration = 2.hours
 
   override def run(args: List[String]): IO[ExitCode] = {
 
@@ -37,18 +37,15 @@ object ConverterServer extends IOApp {
       logger <- loggerResource
       exchangeRateHostProvider = ExchangeRateHostProvider(client)
       fixerProvider = FixerProvider(client, fixerConfig)
-    } yield {
-      CachingProvider(
-        logger,
-        ProviderChain(logger, NonEmptyList.of(exchangeRateHostProvider, fixerProvider)),
-        cachingProviderConfig
-      )
-    }
+    } yield ProviderChain(logger, NonEmptyList.of(exchangeRateHostProvider, fixerProvider))
 
     (loggerResource, providerResource).tupled
       .use { (logger, provider) =>
         val app = Router(
-          "/api/v1" -> Routes.conversionTradeEndpoint(logger, Converter(logger, provider))
+          "/api/v1" -> Routes.conversionTradeEndpoint(
+            logger,
+            Converter(logger, provider, NoOpCache())
+          )
         ).orNotFound
 
         BlazeServerBuilder[IO]

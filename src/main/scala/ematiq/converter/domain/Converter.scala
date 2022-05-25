@@ -18,7 +18,8 @@ case class CurrencyToConvert(
 
 case class Converter[F[_]: Monad: MonadThrow](
     logger: Logger[F],
-    exchangeRateProvider: ExchangeRateProvider[F]
+    exchangeRateProvider: ExchangeRateProvider[F],
+    cache: Cache[F]
 ) {
   def convert(currencyToConvert: CurrencyToConvert): F[Either[Converter.Error, BigMoney]] = {
 
@@ -31,7 +32,7 @@ case class Converter[F[_]: Monad: MonadThrow](
     )
 
     val result = for {
-      exchangeRate <- EitherT(exchangeRateProvider.provide(query).attempt)
+      exchangeRate <- EitherT(cache.get(query, exchangeRateProvider.provide).attempt)
         .leftSemiflatTap(error => logger.warn(s"Failed to get exchange rate: $error"))
         .leftMap(FailedToGetExchangeRate.apply)
 
